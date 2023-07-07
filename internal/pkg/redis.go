@@ -48,7 +48,7 @@ func (c *CacheConfig) SetString(ctx context.Context) {
 		return
 	}
 
-	if err = db.RDB(ctx).Set(c.GetFullKey(), string(byteData), consts.DefaultSampleRedisTtl).Err(); err != nil {
+	if err = db.RDB(ctx).Set(c.GetFullKey(), string(byteData), consts.DefaultSampleRedisTTL).Err(); err != nil {
 		log.Println(err)
 		return
 	}
