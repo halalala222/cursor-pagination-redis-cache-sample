@@ -1,6 +1,8 @@
 package consts
 
+import "time"
+
 const (
-	DefaultSampleRedisTtl = 60 * 60 * 5
+	DefaultSampleRedisTTL = 60 * 60 * 5 * time.Minute
 	BasicPrefix           = "sample"
 )
