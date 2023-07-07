@@ -18,7 +18,7 @@ type CacheConfig struct {
 }
 
 func (c *CacheConfig) GetFullKey() string {
-	return fmt.Sprintf("%s-%v", c.prefix, c.unique)
+	return fmt.Sprintf("%s-%s-%v", consts.BasicPrefix, c.prefix, c.unique)
 }
 
 func (c *CacheConfig) GetString(ctx context.Context) error {
