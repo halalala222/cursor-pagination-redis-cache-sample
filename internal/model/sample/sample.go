@@ -13,7 +13,7 @@ type Sample struct {
 
 func (s *Sample) GetCursor(ctx context.Context, cursorId int64) ([]Sample, error) {
 	var cursorData = make([]Sample, 0)
-	err := db.DB(ctx).Model(&Sample{}).Where("id > ?", cursorId).Limit(consts.DefaultPageSize).Find(&cursorData).Error
+	err := db.DB(ctx).Model(&Sample{}).Where("id < ?", cursorId).Limit(consts.DefaultPageSize).Order("id desc").Find(&cursorData).Error
 	return cursorData, err
 }
 
