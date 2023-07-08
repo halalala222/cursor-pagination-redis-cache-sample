@@ -17,6 +17,11 @@ func (s *Sample) GetCursor(ctx context.Context, cursorId int64) ([]Sample, error
 	return cursorData, err
 }
 
+func (s *Sample) GetOne(ctx context.Context, id int64) (*Sample, error) {
+	sample := &Sample{}
+	err := db.DB(ctx).Model(&Sample{}).Where("id = ?", id).First(sample).Error
+	return sample, err
+}
 func (s *Sample) TableName() string {
 	return "sample"
 }
