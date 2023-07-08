@@ -55,40 +55,28 @@ func (c *CacheConfig) SetString(ctx context.Context) {
 	return
 }
 
-func (c *CacheConfig) GetZRevRangeWithScoresWithMin(ctx context.Context, min int64) error {
+func (c *CacheConfig) GetZRevRangeWithScoresWithMin(ctx context.Context, min int64) ([]redis.Z, error) {
 	var (
-		result []redis.Z
-		err    error
-		opt    = redis.ZRangeBy{
+		opt = redis.ZRangeBy{
 			Max:    "+inf",
 			Min:    strconv.FormatInt(min, 10),
 			Offset: 0,
 			Count:  consts.DefaultPageSize,
 		}
 	)
-	if result, err = db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result(); err != nil {
-		return err
-	}
-	c.Data = result
-	return nil
+	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result()
 }
 
-func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int64) error {
+func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int64) ([]redis.Z, error) {
 	var (
-		result []redis.Z
-		err    error
-		opt    = redis.ZRangeBy{
+		opt = redis.ZRangeBy{
 			Max:    strconv.FormatInt(max, 10),
 			Min:    "-inf",
 			Offset: 0,
 			Count:  consts.DefaultPageSize,
 		}
 	)
-	if result, err = db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result(); err != nil {
-		return err
-	}
-	c.Data = result
-	return nil
+	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result()
 }
 
 func (c *CacheConfig) SetZSet(ctx context.Context, data []redis.Z) {
