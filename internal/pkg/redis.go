@@ -17,8 +17,11 @@ type CacheConfig struct {
 	Unique any
 }
 
-func (c *CacheConfig) GetFullKey() string {
-	return fmt.Sprintf("%s-%s-%v", consts.BasicPrefix, c.Prefix, c.Unique)
+func (c *CacheConfig) getFullKey() string {
+	if c.Unique != nil {
+		return fmt.Sprintf("%s-%s-%v", consts.BasicPrefix, c.Prefix, c.Unique)
+	}
+	return fmt.Sprintf("%s-%s", consts.BasicPrefix, c.Prefix)
 }
 
 func (c *CacheConfig) GetString(ctx context.Context) error {
@@ -27,7 +30,7 @@ func (c *CacheConfig) GetString(ctx context.Context) error {
 		result string
 	)
 
-	if result, err = db.RDB(ctx).Get(c.GetFullKey()).Result(); err != nil {
+	if result, err = db.RDB(ctx).Get(c.getFullKey()).Result(); err != nil {
 		return err
 	}
 	if err = json.Unmarshal([]byte(result), c.Data); err != nil {
@@ -48,7 +51,7 @@ func (c *CacheConfig) SetString(ctx context.Context) {
 		return
 	}
 
-	if err = db.RDB(ctx).Set(c.GetFullKey(), string(byteData), consts.DefaultSampleRedisTTL).Err(); err != nil {
+	if err = db.RDB(ctx).Set(c.getFullKey(), string(byteData), consts.DefaultSampleRedisTTL).Err(); err != nil {
 		log.Println(err)
 		return
 	}
@@ -64,7 +67,7 @@ func (c *CacheConfig) GetZRevRangeWithScoresWithMin(ctx context.Context, min int
 			Count:  consts.DefaultPageSize,
 		}
 	)
-	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result()
+	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.getFullKey(), opt).Result()
 }
 
 func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int64) ([]redis.Z, error) {
@@ -76,12 +79,12 @@ func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int
 			Count:  consts.DefaultPageSize,
 		}
 	)
-	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result()
+	return db.RDB(ctx).ZRevRangeByScoreWithScores(c.getFullKey(), opt).Result()
 }
 
 func (c *CacheConfig) SetZSet(ctx context.Context, data []redis.Z) {
 	var err error
-	if err = db.RDB(ctx).ZAdd(c.GetFullKey(), data...).Err(); err != nil {
+	if err = db.RDB(ctx).ZAdd(c.getFullKey(), data...).Err(); err != nil {
 		log.Println(err)
 	}
 	return
