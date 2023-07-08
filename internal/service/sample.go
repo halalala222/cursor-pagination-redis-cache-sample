@@ -8,6 +8,7 @@ import (
 	"github.com/halalala222/cursor-pagination-redis-cache-sample/internal/pkg"
 	"github.com/samber/lo"
 	"log"
+	"strconv"
 )
 
 type SampleService struct{}
@@ -63,7 +64,12 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 		}))
 	} else {
 		data = lo.Map(result, func(item redis.Z, index int) sample.Sample {
-			return *s.GetOneSample(ctx, item.Member.(int64))
+			var parseInt int64
+			if parseInt, err = strconv.ParseInt(item.Member.(string), 10, 64); err != nil {
+				log.Println(err)
+				return sample.Sample{}
+			}
+			return *s.GetOneSample(ctx, parseInt)
 		})
 	}
 
