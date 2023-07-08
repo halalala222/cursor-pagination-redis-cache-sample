@@ -12,13 +12,13 @@ import (
 )
 
 type CacheConfig struct {
-	data   any
-	prefix string
-	unique any
+	Data   any
+	Prefix string
+	Unique any
 }
 
 func (c *CacheConfig) GetFullKey() string {
-	return fmt.Sprintf("%s-%s-%v", consts.BasicPrefix, c.prefix, c.unique)
+	return fmt.Sprintf("%s-%s-%v", consts.BasicPrefix, c.Prefix, c.Unique)
 }
 
 func (c *CacheConfig) GetString(ctx context.Context) error {
@@ -30,7 +30,7 @@ func (c *CacheConfig) GetString(ctx context.Context) error {
 	if result, err = db.RDB(ctx).Get(c.GetFullKey()).Result(); err != nil {
 		return err
 	}
-	if err = json.Unmarshal([]byte(result), c.data); err != nil {
+	if err = json.Unmarshal([]byte(result), c.Data); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func (c *CacheConfig) SetString(ctx context.Context) {
 		byteData []byte
 	)
 
-	if byteData, err = json.Marshal(c.data); err != nil {
+	if byteData, err = json.Marshal(c.Data); err != nil {
 		log.Println(err)
 		return
 	}
@@ -69,7 +69,7 @@ func (c *CacheConfig) GetZRevRangeWithScoresWithMin(ctx context.Context, min int
 	if result, err = db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result(); err != nil {
 		return err
 	}
-	c.data = result
+	c.Data = result
 	return nil
 }
 
@@ -87,7 +87,7 @@ func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int
 	if result, err = db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result(); err != nil {
 		return err
 	}
-	c.data = result
+	c.Data = result
 	return nil
 }
 

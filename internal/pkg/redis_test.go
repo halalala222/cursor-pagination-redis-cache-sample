@@ -72,12 +72,12 @@ var setData = []redis.Z{
 
 var testConfig = []CacheConfig{
 	{
-		data:   nil,
-		prefix: "test-get-full-key",
-		unique: 1,
+		Data:   nil,
+		Prefix: "test-get-full-key",
+		Unique: 1,
 	},
 	{
-		data: []sample.Sample{
+		Data: []sample.Sample{
 			{
 				Id:   1,
 				Name: "test-1",
@@ -87,18 +87,18 @@ var testConfig = []CacheConfig{
 				Name: "test-2",
 			},
 		},
-		prefix: "test-get-full-key",
-		unique: 1,
+		Prefix: "test-get-full-key",
+		Unique: 1,
 	},
 	{
-		data:   &[]sample.Sample{},
-		prefix: "test-get-full-key",
-		unique: 1,
+		Data:   &[]sample.Sample{},
+		Prefix: "test-get-full-key",
+		Unique: 1,
 	},
 	{
-		data:   &[]sample.Sample{},
-		prefix: "test-ZSet",
-		unique: 2,
+		Data:   &[]sample.Sample{},
+		Prefix: "test-ZSet",
+		Unique: 2,
 	},
 }
 
@@ -116,7 +116,7 @@ func TestCacheConfig_GetString(t *testing.T) {
 		t.Log(err)
 		return
 	}
-	t.Log(testConfig[2].data)
+	t.Log(testConfig[2].Data)
 }
 
 func TestCacheConfig_SetZSet(t *testing.T) {
@@ -128,7 +128,7 @@ func TestCacheConfig_GetZRevRangeWithScoresWithMin(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Log(testConfig[3].data)
+	t.Log(testConfig[3].Data)
 }
 
 func TestCacheConfig_GetZRevRangeWithScoresWithMax(t *testing.T) {
@@ -136,5 +136,5 @@ func TestCacheConfig_GetZRevRangeWithScoresWithMax(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Log(testConfig[3].data)
+	t.Log(testConfig[3].Data)
 }
