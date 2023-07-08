@@ -73,6 +73,24 @@ func (c *CacheConfig) GetZRevRangeWithScoresWithMin(ctx context.Context, min int
 	return nil
 }
 
+func (c *CacheConfig) GetZRevRangeWithScoresWithMax(ctx context.Context, max int64) error {
+	var (
+		result []redis.Z
+		err    error
+		opt    = redis.ZRangeBy{
+			Max:    strconv.FormatInt(max, 10),
+			Min:    "-inf",
+			Offset: 0,
+			Count:  consts.DefaultPageSize,
+		}
+	)
+	if result, err = db.RDB(ctx).ZRevRangeByScoreWithScores(c.GetFullKey(), opt).Result(); err != nil {
+		return err
+	}
+	c.data = result
+	return nil
+}
+
 func (c *CacheConfig) SetZSet(ctx context.Context, data []redis.Z) {
 	var err error
 	if err = db.RDB(ctx).ZAdd(c.GetFullKey(), data...).Err(); err != nil {
