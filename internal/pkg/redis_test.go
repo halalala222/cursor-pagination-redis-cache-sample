@@ -103,7 +103,7 @@ var testConfig = []CacheConfig{
 }
 
 func TestCacheConfig_GetFullKey(t *testing.T) {
-	t.Log(testConfig[0].GetFullKey())
+	t.Log(testConfig[0].getFullKey())
 }
 
 func TestCacheConfig_SetString(t *testing.T) {
@@ -124,17 +124,25 @@ func TestCacheConfig_SetZSet(t *testing.T) {
 }
 
 func TestCacheConfig_GetZRevRangeWithScoresWithMin(t *testing.T) {
-	if err := testConfig[3].GetZRevRangeWithScoresWithMin(context.Background(), 10); err != nil {
+	var (
+		data []redis.Z
+		err  error
+	)
+	if data, err = testConfig[3].GetZRevRangeWithScoresWithMin(context.Background(), 10); err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(testConfig[3].Data)
+	t.Log(data)
 }
 
 func TestCacheConfig_GetZRevRangeWithScoresWithMax(t *testing.T) {
-	if err := testConfig[3].GetZRevRangeWithScoresWithMax(context.Background(), 14); err != nil {
+	var (
+		data []redis.Z
+		err  error
+	)
+	if data, err = testConfig[3].GetZRevRangeWithScoresWithMax(context.Background(), 14); err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(testConfig[3].Data)
+	t.Log(data)
 }
