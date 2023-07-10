@@ -41,9 +41,6 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 		result      = make([]redis.Z, 0)
 		err         error
 		data        = make([]sample.Sample, 0)
-		sampleData  = &sample.Sample{
-			Id: inputSample.Id,
-		}
 	)
 
 	if result, err = cacheConfig.GetZRevRangeWithScoresWithMax(ctx, inputSample.Id); err != nil {
@@ -66,29 +63,12 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 	data = s.GetAllDataFromRedisZ(ctx, result)
 
 	if isGetLessData {
-		var (
-			lastRecordId     int64
-			newData          []sample.Sample
-			resultLen        = len(result)
-			isGetEmptyResult = resultLen == 0
-		)
-
-		if isGetEmptyResult {
-			lastRecordId = sampleData.Id
-		} else {
-			if lastRecordId, err = strconv.ParseInt(result[resultLen-1].Member.(string), 10, 64); err != nil {
-				log.Println(err)
-				return make([]sample.Sample, 0)
-			}
-		}
-
-		if newData, err = sampleData.GetCursorWithLimit(ctx, lastRecordId, resultLen); err != nil {
+		var newData []sample.Sample
+		if newData, err = s.GetMoreDataFromMySQL(ctx, result, inputSample.Id); err != nil {
 			log.Println(err)
 			return make([]sample.Sample, 0)
 		}
-		s.SetRedisZSet(ctx, newData)
 		data = append(data, newData...)
-
 	}
 
 	return data
@@ -147,4 +127,31 @@ func (s *SampleService) GetAllDataFromRedisZ(ctx context.Context, redisData []re
 		}
 		return *s.GetOneSample(ctx, parseInt)
 	})
+}
+
+func (s *SampleService) GetMoreDataFromMySQL(ctx context.Context, redisResult []redis.Z, cursorId int64) ([]sample.Sample, error) {
+	var (
+		lastRecordId     int64
+		newData          []sample.Sample
+		resultLen        = len(redisResult)
+		isGetEmptyResult = resultLen == 0
+		err              error
+		sampleData       = &sample.Sample{
+			Id: cursorId,
+		}
+	)
+
+	if isGetEmptyResult {
+		lastRecordId = cursorId
+	} else {
+		if lastRecordId, err = strconv.ParseInt(redisResult[resultLen-1].Member.(string), 10, 64); err != nil {
+			return make([]sample.Sample, 0), err
+		}
+	}
+
+	if newData, err = sampleData.GetCursorWithLimit(ctx, lastRecordId, resultLen); err != nil {
+		return make([]sample.Sample, 0), err
+	}
+	s.SetRedisZSet(ctx, newData)
+	return newData, nil
 }
