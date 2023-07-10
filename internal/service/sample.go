@@ -83,19 +83,20 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 		var (
 			lastRecordId     int64
 			newData          []sample.Sample
-			isGetEmptyResult = len(result) == 0
+			resultLen        = len(result)
+			isGetEmptyResult = resultLen == 0
 		)
 
 		if isGetEmptyResult {
 			lastRecordId = sampleData.Id
 		} else {
-			if lastRecordId, err = strconv.ParseInt(result[len(result)-1].Member.(string), 10, 64); err != nil {
+			if lastRecordId, err = strconv.ParseInt(result[resultLen-1].Member.(string), 10, 64); err != nil {
 				log.Println(err)
 				return make([]sample.Sample, 0)
 			}
 		}
 
-		if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
+		if newData, err = sampleData.GetCursorWithLimit(ctx, lastRecordId, resultLen); err != nil {
 			log.Println(err)
 			return make([]sample.Sample, 0)
 		}
