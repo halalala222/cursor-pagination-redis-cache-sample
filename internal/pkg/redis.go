@@ -89,3 +89,15 @@ func (c *CacheConfig) SetZSet(ctx context.Context, data []redis.Z) {
 	}
 	return
 }
+
+func (c *CacheConfig) KeyIsExit(ctx context.Context) bool {
+	var (
+		err   error
+		count int64
+	)
+	if count, err = db.RDB(ctx).Exists(c.getFullKey()).Result(); err != nil {
+		log.Println(err)
+		return false
+	}
+	return count > 0
+}
