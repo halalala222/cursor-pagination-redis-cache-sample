@@ -57,22 +57,13 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 	)
 
 	if isGetFromRedisFailed || !isKeyExist {
-		if data, err = sampleData.GetCursor(ctx, sampleData.Id); err != nil {
+		if data, err = s.GetCursorDataFromMySQLAndSetIntoRedis(ctx, inputSample.Id); err != nil {
 			log.Println(err)
-			return make([]sample.Sample, 0)
 		}
-		s.SetRedisZSet(ctx, data)
 		return data
 	}
 
-	data = lo.Map(result, func(item redis.Z, index int) sample.Sample {
-		var parseInt int64
-		if parseInt, err = strconv.ParseInt(item.Member.(string), 10, 64); err != nil {
-			log.Println(err)
-			return sample.Sample{}
-		}
-		return *s.GetOneSample(ctx, parseInt)
-	})
+	data = s.GetAllDataFromRedisZ(ctx, result)
 
 	if isGetLessData {
 		var (
@@ -129,4 +120,31 @@ func (s *SampleService) SetRedisZSet(ctx context.Context, data []sample.Sample) 
 			Member: item.Id,
 		}
 	}))
+}
+
+func (s *SampleService) GetCursorDataFromMySQLAndSetIntoRedis(ctx context.Context, cursorId int64) ([]sample.Sample, error) {
+	var (
+		data       []sample.Sample
+		err        error
+		sampleData = &sample.Sample{
+			Id: cursorId,
+		}
+	)
+	if data, err = sampleData.GetCursor(ctx, sampleData.Id); err != nil {
+		return make([]sample.Sample, 0), err
+	}
+	s.SetRedisZSet(ctx, data)
+	return data, nil
+}
+
+func (s *SampleService) GetAllDataFromRedisZ(ctx context.Context, redisData []redis.Z) []sample.Sample {
+	var err error
+	return lo.Map(redisData, func(item redis.Z, index int) sample.Sample {
+		var parseInt int64
+		if parseInt, err = strconv.ParseInt(item.Member.(string), 10, 64); err != nil {
+			log.Println(err)
+			return sample.Sample{}
+		}
+		return *s.GetOneSample(ctx, parseInt)
+	})
 }
