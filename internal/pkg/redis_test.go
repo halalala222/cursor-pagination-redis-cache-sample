@@ -100,6 +100,11 @@ var testConfig = []CacheConfig{
 		Prefix: "test-ZSet",
 		Unique: 2,
 	},
+	{
+		Data:   &[]sample.Sample{},
+		Prefix: "test",
+		Unique: nil,
+	},
 }
 
 func TestCacheConfig_GetFullKey(t *testing.T) {
@@ -145,4 +150,15 @@ func TestCacheConfig_GetZRevRangeWithScoresWithMax(t *testing.T) {
 		return
 	}
 	t.Log(data)
+}
+
+func TestCacheConfig_KeyIsExit(t *testing.T) {
+	isExit := testConfig[0].KeyIsExit(context.Background())
+	if isExit {
+		t.Error("expect false by get true")
+	}
+	isExit = testConfig[4].KeyIsExit(context.Background())
+	if !isExit {
+		t.Error("expect true by get false")
+	}
 }
