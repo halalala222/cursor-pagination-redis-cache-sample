@@ -61,12 +61,7 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 			log.Println(err)
 			return make([]sample.Sample, 0)
 		}
-		cacheConfig.SetZSet(ctx, lo.Map(data, func(item sample.Sample, index int) redis.Z {
-			return redis.Z{
-				Score:  float64(item.Id),
-				Member: item.Id,
-			}
-		}))
+		s.SetRedisZSet(ctx, data)
 		return data
 	}
 
@@ -100,12 +95,7 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 			log.Println(err)
 			return make([]sample.Sample, 0)
 		}
-		cacheConfig.SetZSet(ctx, lo.Map(newData, func(item sample.Sample, index int) redis.Z {
-			return redis.Z{
-				Score:  float64(item.Id),
-				Member: item.Id,
-			}
-		}))
+		s.SetRedisZSet(ctx, newData)
 		data = append(data, newData...)
 
 	}
@@ -129,4 +119,14 @@ func (s *SampleService) GetStringRedisConfig(unique int64) *pkg.CacheConfig {
 		Data:   &sample.Sample{},
 	}
 	return cacheConfig
+}
+
+func (s *SampleService) SetRedisZSet(ctx context.Context, data []sample.Sample) {
+	cacheConfig := s.GetZSetRedisConfig()
+	cacheConfig.SetZSet(ctx, lo.Map(data, func(item sample.Sample, index int) redis.Z {
+		return redis.Z{
+			Score:  float64(item.Id),
+			Member: item.Id,
+		}
+	}))
 }
