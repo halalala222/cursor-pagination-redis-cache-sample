@@ -44,14 +44,17 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 			Id: inputSample.Id,
 		}
 	)
+
 	if result, err = cacheConfig.GetZRevRangeWithScoresWithMax(ctx, inputSample.Id); err != nil {
 		log.Println(err)
 	}
+
 	var (
 		isGetLessData        = len(result) < consts.DefaultPageSize
 		isGetFromRedisFailed = err != nil
 	)
-	if isGetLessData || isGetFromRedisFailed {
+
+	if isGetFromRedisFailed {
 		if data, err = sampleData.GetCursor(ctx, sampleData.Id); err != nil {
 			log.Println(err)
 			return make([]sample.Sample, 0)
@@ -62,15 +65,40 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 				Member: item.Id,
 			}
 		}))
-	} else {
-		data = lo.Map(result, func(item redis.Z, index int) sample.Sample {
-			var parseInt int64
-			if parseInt, err = strconv.ParseInt(item.Member.(string), 10, 64); err != nil {
+		return data
+	}
+
+	data = lo.Map(result, func(item redis.Z, index int) sample.Sample {
+		var parseInt int64
+		if parseInt, err = strconv.ParseInt(item.Member.(string), 10, 64); err != nil {
+			log.Println(err)
+			return sample.Sample{}
+		}
+		return *s.GetOneSample(ctx, parseInt)
+	})
+
+	if isGetLessData {
+		var (
+			lastRecordId int64
+			newData      []sample.Sample
+		)
+		if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
+			log.Println(err)
+			return make([]sample.Sample, 0)
+		}
+		if len(newData) != 0 {
+			if lastRecordId, err = strconv.ParseInt(result[len(result)-1].Member.(string), 10, 64); err != nil {
 				log.Println(err)
-				return sample.Sample{}
+				return make([]sample.Sample, 0)
 			}
-			return *s.GetOneSample(ctx, parseInt)
-		})
+			cacheConfig.SetZSet(ctx, lo.Map(data, func(item sample.Sample, index int) redis.Z {
+				return redis.Z{
+					Score:  float64(item.Id),
+					Member: item.Id,
+				}
+			}))
+			data = append(data, newData...)
+		}
 	}
 
 	return data
