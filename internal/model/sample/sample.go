@@ -17,6 +17,12 @@ func (s *Sample) GetCursor(ctx context.Context, cursorId int64) ([]Sample, error
 	return cursorData, err
 }
 
+func (s *Sample) GetCursorWithLimit(ctx context.Context, cursorId int64, limit int) ([]Sample, error) {
+	var cursorData = make([]Sample, 0)
+	err := db.DB(ctx).Model(&Sample{}).Where("id < ?", cursorId).Limit(limit).Order("id desc").Find(&cursorData).Error
+	return cursorData, err
+}
+
 func (s *Sample) GetOne(ctx context.Context, id int64) (*Sample, error) {
 	sample := &Sample{}
 	err := db.DB(ctx).Model(&Sample{}).Where("id = ?", id).First(sample).Error
