@@ -28,6 +28,7 @@ func (s *SampleService) GetOneSample(ctx context.Context, id int64) *sample.Samp
 			log.Println(err)
 			return data
 		}
+		cache.Data = data
 		cache.SetString(ctx)
 		return data
 	}
@@ -83,12 +84,13 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 			lastRecordId int64
 			newData      []sample.Sample
 		)
-		if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
-			log.Println(err)
-			return make([]sample.Sample, 0)
-		}
+
 		if len(newData) != 0 {
 			if lastRecordId, err = strconv.ParseInt(result[len(result)-1].Member.(string), 10, 64); err != nil {
+				log.Println(err)
+				return make([]sample.Sample, 0)
+			}
+			if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
 				log.Println(err)
 				return make([]sample.Sample, 0)
 			}
