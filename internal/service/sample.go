@@ -81,27 +81,32 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 
 	if isGetLessData {
 		var (
-			lastRecordId int64
-			newData      []sample.Sample
+			lastRecordId     int64
+			newData          []sample.Sample
+			isGetEmptyResult = len(result) == 0
 		)
 
-		if len(newData) != 0 {
+		if isGetEmptyResult {
+			lastRecordId = sampleData.Id
+		} else {
 			if lastRecordId, err = strconv.ParseInt(result[len(result)-1].Member.(string), 10, 64); err != nil {
 				log.Println(err)
 				return make([]sample.Sample, 0)
 			}
-			if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
-				log.Println(err)
-				return make([]sample.Sample, 0)
-			}
-			cacheConfig.SetZSet(ctx, lo.Map(data, func(item sample.Sample, index int) redis.Z {
-				return redis.Z{
-					Score:  float64(item.Id),
-					Member: item.Id,
-				}
-			}))
-			data = append(data, newData...)
 		}
+
+		if newData, err = sampleData.GetCursor(ctx, lastRecordId); err != nil {
+			log.Println(err)
+			return make([]sample.Sample, 0)
+		}
+		cacheConfig.SetZSet(ctx, lo.Map(data, func(item sample.Sample, index int) redis.Z {
+			return redis.Z{
+				Score:  float64(item.Id),
+				Member: item.Id,
+			}
+		}))
+		data = append(data, newData...)
+
 	}
 
 	return data
