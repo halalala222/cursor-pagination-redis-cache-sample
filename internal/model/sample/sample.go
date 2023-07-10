@@ -22,6 +22,7 @@ func (s *Sample) GetOne(ctx context.Context, id int64) (*Sample, error) {
 	err := db.DB(ctx).Model(&Sample{}).Where("id = ?", id).First(sample).Error
 	return sample, err
 }
+
 func (s *Sample) TableName() string {
 	return "sample"
 }
