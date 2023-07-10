@@ -52,9 +52,10 @@ func (s *SampleService) GetCursor(ctx context.Context, inputSample sample.Sample
 	var (
 		isGetLessData        = len(result) < consts.DefaultPageSize
 		isGetFromRedisFailed = err != nil
+		isKeyExist           = cacheConfig.KeyIsExit(ctx)
 	)
 
-	if isGetFromRedisFailed {
+	if isGetFromRedisFailed || !isKeyExist {
 		if data, err = sampleData.GetCursor(ctx, sampleData.Id); err != nil {
 			log.Println(err)
 			return make([]sample.Sample, 0)
